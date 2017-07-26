@@ -7,9 +7,24 @@ const names = ['sepalLength', 'sepalWidth', 'petalLength', 'petalWidth', 'type']
 
 let seperationSize; // To seperate training and test data
 
-let data = [], X = [], y = [];
+let data = [], X = [], y = [];	// data --> 所有数据， x --> 数据部分 y--> 种类
 
 let trainingSetX = [], trainingSetY = [], testSetX = [], testSetY = [];
+
+// load test data
+// const testCsvTestFile = "test.csv"; // test data file path
+const testCsvTestFile = "test_whole.csv"; // test data file path
+let testData = [];
+csv({noheader: true, headers: names})
+    .fromFile(testCsvTestFile)
+    .on('json', (jsonObj) => {
+        testData.push(jsonObj); // Push each object to data Array
+    })
+    .on('done', (error) => {
+        // seperationSize = 0.7 * data.length;
+        testData = shuffleArray(testData);
+        // console.log("Test Data:" , testData);
+    });
 
 csv({noheader: true, headers: names})
     .fromFile(csvFilePath)
@@ -21,6 +36,10 @@ csv({noheader: true, headers: names})
         data = shuffleArray(data);
         dressData();
     });
+
+
+
+
 
 function dressData() {
 
@@ -54,8 +73,8 @@ function dressData() {
 
         typeNumber = typesArray.indexOf(row.type); // Convert type(String) to type(Number)
 
-        X.push(rowArray);
-        y.push(typeNumber);
+        X.push(rowArray);	// 行数据
+        y.push(typeNumber);	// 行种类
     });
 
     trainingSetX = X.slice(0, seperationSize);
@@ -75,7 +94,7 @@ function test() {
     const result = knn.predict(testSetX);
     const testSetLength = testSetX.length;
     const predictionError = error(result, testSetY);
-    console.log(`Test Set Size = ${testSetLength} and number of Misclassifications = ${predictionError}`);
+    console.info(`Test Set Size = ${testSetLength} and number of Misclassifications = ${predictionError}`);
     predict();
 }
 
@@ -90,17 +109,26 @@ function error(predicted, expected) {
 }
 
 function predict() {
-    let temp = [];
-    prompt.start();
+    
+    /*prompt.start();
     
     prompt.get(['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width'], function (err, result) {
         if (!err) {
             for (var key in result) {
                 temp.push(parseFloat(result[key]));
             }
-            console.log(`With ${temp} -- type =  ${knn.predict(temp)}`);
+            console.info(`With ${temp} -- type =  ${knn.predict(temp)}`);
         }
-    });
+    });*/
+    // read test Data
+    for(var index = 0; index < testData.length; index ++) {
+        let temp = [];
+        // change key in array
+        for(var key in testData[index]){
+            temp.push(parseFloat(testData[index][key]));
+        }
+        console.log(`With ${temp} --> type = ${knn.predict(temp)}`);
+    }
 }
 
 /**
